@@ -17,11 +17,9 @@ export const addGroceryItem = async (
 
     // If stock is undefined or null, then it's required; if stock is 0, it's valid.
     if (stock === undefined || stock === null) {
-      res
-        .status(400)
-        .json({
-          message: "Stock is required and cannot be null or undefined.",
-        });
+      res.status(400).json({
+        message: "Stock is required and cannot be null or undefined.",
+      });
       return;
     }
 
@@ -68,7 +66,7 @@ export const removeGroceryItem = async (req: Request, res: Response) => {
 export const updateGroceryItem = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, price, stock } = req.body;
+    const { name, price } = req.body;
     // Check if the grocery item exists
     const item = await GroceryItem.findById(id);
     if (!item) {
@@ -76,10 +74,49 @@ export const updateGroceryItem = async (req: Request, res: Response) => {
     }
     const updatedItem = await GroceryItem.findByIdAndUpdate(
       id,
-      { name, price, stock },
+      { name, price },
       { new: true }
     );
     res.status(200).json(updatedItem);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateInventory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params; // The grocery item ID
+    const { stock } = req.body; // The new stock level
+
+    // Validate input
+    if (stock == null || isNaN(stock) || stock < 0) {
+      res
+        .status(400)
+        .json({
+          message: "Invalid stock value. Must be a non-negative number.",
+        });
+      return;
+    }
+
+    // Find and update the grocery item's stock level
+    const updatedItem = await GroceryItem.findByIdAndUpdate(
+      id,
+      { stock },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedItem) {
+      res.status(404).json({ message: "Grocery item not found." });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Inventory updated successfully!",
+      updatedItem,
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

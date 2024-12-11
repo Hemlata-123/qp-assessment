@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import GroceryItem from "../models/GroceryItem";
+import Order from "../models/Order";
 
 // View available grocery items
 export const viewAvailableItems = async (req: Request, res: Response) => {
@@ -22,22 +23,41 @@ export const bookGroceries = async (
 ): Promise<void> => {
   try {
     const { items } = req.body;
+    const email = req.body.user.email; // Assuming email is available via middleware
+    let totalAmount = 0; // Calculate the total order amount
     const bookedItems = [];
 
     for (const item of items) {
       const groceryItem = await GroceryItem.findById(item.id);
+
       if (groceryItem && groceryItem.stock >= item.quantity) {
         groceryItem.stock -= item.quantity;
         await groceryItem.save();
-        bookedItems.push({ name: groceryItem.name, quantity: item.quantity });
+
+        bookedItems.push({
+          groceryItemId: groceryItem._id,
+          quantity: item.quantity,
+        });
+
+        totalAmount += groceryItem.price * item.quantity;
       } else {
         res
           .status(400)
-          .json({ message: `Insufficient stock for item: ${item.id}` });
+          .json({ message: `Insufficient stock for item: ${groceryItem?.name}` });
+        return;
       }
     }
 
-    res.status(200).json({ message: "Booking successful", bookedItems });
+    // Save the order in the database with email
+    const newOrder = new Order({
+      email, // Store user email instead of userId
+      items: bookedItems,
+      totalAmount,
+    });
+
+    await newOrder.save();
+
+    res.status(200).json({ message: "Booking successful", order: newOrder });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

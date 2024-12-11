@@ -8,6 +8,6 @@ import { verifyUser } from "../middleware/authMiddleware";
 const router = Router();
 
 router.get("/groceries", verifyUser, viewAvailableItems);
-router.post("/book", verifyUser, bookGroceries);
+router.post("/bookorder", verifyUser, bookGroceries);
 
 export default router;

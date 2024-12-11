@@ -1,6 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
+interface CustomRequest extends Request {
+  user?: {
+    email: string;
+    role: string;
+  };
+}
 
 export const verifyAdmin = async (
   req: Request,
@@ -17,7 +23,7 @@ export const verifyAdmin = async (
   try {
     // Verify the JWT token and decode it
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    const { email, role } = decoded as any; 
+    const { email, role } = decoded as any;
     const user = await User.findOne({ email });
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -39,7 +45,7 @@ export const verifyAdmin = async (
 };
 
 export const verifyUser = async (
-  req: Request,
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -53,20 +59,25 @@ export const verifyUser = async (
   try {
     // Verify the JWT token and decode it
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    const { email, role } = decoded as any; 
+    const { email, role } = decoded as any;
+
+    // Check if the user exists in the database
     const user = await User.findOne({ email });
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
 
-    // Check if the role is "Admin"
+    // Ensure the role is "User"
     if (role !== "User") {
       res.status(403).json({ message: "Access denied. Users only." });
       return;
     }
 
-    // Continue to the next middleware or route handler if everything is okay
+    // Add user details to the request object
+    req.body.user = { email, role };
+
+    // Continue to the next middleware or route handler
     next();
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });

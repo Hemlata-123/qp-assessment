@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 // Define the payload and secret
-const payload = {
+const payload = {  
   // email: "test@email.com",
   // role: "User"
   email: "trialuser@email.com",
