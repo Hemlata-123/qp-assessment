@@ -2,9 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const adminController_1 = require("../controllers/adminController");
+const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = (0, express_1.Router)();
-router.post('/grocery', adminController_1.addGroceryItem);
-router.get('/groceries', adminController_1.viewGroceryItems);
-router.delete('/grocery/:id', adminController_1.removeGroceryItem);
-router.put('/grocery/:id', adminController_1.updateGroceryItem);
+router.post("/addgrocery", authMiddleware_1.verifyAdmin, adminController_1.addGroceryItem);
+router.get("/groceries", authMiddleware_1.verifyAdmin, adminController_1.viewGroceryItems);
+router.delete("/deletegrocery/:id", authMiddleware_1.verifyAdmin, adminController_1.removeGroceryItem);
+router.put("/updategrocery/:id", authMiddleware_1.verifyAdmin, adminController_1.updateGroceryItem);
+router.put("/grocery/:id/inventory", authMiddleware_1.verifyAdmin, adminController_1.updateInventory);
 exports.default = router;

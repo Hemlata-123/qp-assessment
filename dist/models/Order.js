@@ -34,9 +34,19 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const UserSchema = new mongoose_1.Schema({
-    email: { type: String, required: true, unique: true },
-    //password: { type: String, required: true },
-    role: { type: String, required: true, enum: ['Admin', 'User'] },
+const OrderItemSchema = new mongoose_1.Schema({
+    groceryItemId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "GroceryItem",
+        required: true,
+    },
+    quantity: { type: Number, required: true },
 });
-exports.default = mongoose_1.default.model('User', UserSchema);
+const OrderSchema = new mongoose_1.Schema({
+    email: { type: String, required: true }, // Store user email
+    items: { type: [OrderItemSchema], required: true },
+    totalAmount: { type: Number, required: true },
+    orderDate: { type: Date, default: Date.now },
+});
+const Order = mongoose_1.default.model("Order", OrderSchema);
+exports.default = Order;
